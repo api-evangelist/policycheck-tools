@@ -1,0 +1,106 @@
+generated: '2026-09-19'
+method: derived
+source: openapi/policycheck-tools-openapi.yml
+docs: https://policycheck.tools/docs#response-fields
+summary: >-
+  Derived from the two inline response schemas in the OpenAPI plus the documented shapes of /api/check, the
+  clause registry, signed assessments and the audit log. PolicyCheck has no persisted, caller-addressable
+  resources: every entity is a computed analysis of a seller's policy text, and the only durable records are
+  the provider-side audit records and the versioned clause registry. Entities link by clause id (stable
+  within a registry major version) and by seller domain, never by $ref — the OpenAPI declares no
+  components.schemas.
+id_style:
+  format: 'UUID for assessment_id and audit record id; snake_case string identifiers for clause types'
+  prefixes_published: false
+  jwks_kid: policycheck-1
+entities:
+- name: LegalDocumentAnalysis
+  source: 'OpenAPI analyzeLegalDocument / analyzeLegalDocumentFromURL 200 (inline schema)'
+  fields:
+  - summary.product
+  - summary.updated_at
+  - 'summary.jurisdiction[]'
+  - 'summary.sections[] {key, title, bullets[], body}'
+  - 'risks {arbitration, classActionWaiver, liabilityCap, terminationAtWill, optOutDays}'
+  - 'key_findings[]'
+  - url
+  - title
+  - content_length
+  relationships:
+  - belongs_to: LegalDocument (input)
+    via: 'text | url + document_type'
+- name: PolicyAnalysis
+  source: 'POST /api/check response; also the A2A data artifact and the x402 analysis payload'
+  fields:
+  - seller_url
+  - risk_score
+  - risk_level
+  - buyer_protection_rating
+  - buyer_protection_score
+  - 'risk_factors[]'
+  - 'positives[]'
+  - summary
+  - 'flags[]'
+  - 'clauses[]'
+  - 'policies {returns, shipping, legal, pricing, privacy}'
+  - fetch_method
+  - analysis_status
+  - confidence
+  - analysis_method
+  - analyzed_at
+  relationships:
+  - has_many: RiskFactor
+    via: risk_factors
+  - has_many: Clause
+    via: 'flags[] / clauses[].id (clause registry ids)'
+  - belongs_to: Seller
+    via: seller_url
+- name: RiskFactor
+  source: 'POST /api/check response risk_factors[]'
+  fields: [factor, severity, detail, source, found_in, severity_note]
+  relationships:
+  - belongs_to: Clause
+    via: factor
+- name: Clause
+  source: 'GET /api/clause-registry (version 2.0.0, 18 entries)'
+  fields: [id, category, description, is_standard_boilerplate]
+  categories: [returns, legal, pricing, privacy]
+  note: 'Registry ids are the join key across every surface: flags[], risk_factors[].factor, clauses[].id, audit records.flags[] and compliance-report top flags.'
+- name: SignedAssessment
+  source: 'POST /api/v1/signed-assessment response'
+  fields:
+  - 'signed_assessment {version, provider, assessment_id, timestamp, expires_at, seller {domain, url}, flags[], risk_factors_summary, risk_score, risk_level, buyer_protection_score, buyer_protection_rating, risk_factors[], positives[], analysis_status, confidence}'
+  - signature
+  - signed_payload_hash
+  - verification_url
+  - jwks_url
+  relationships:
+  - has_one: PolicyAnalysis
+    via: signed_assessment (embedded subset)
+  - has_one: VerificationResult
+    via: 'POST /api/v1/verify'
+  - belongs_to: SigningKey
+    via: jwks_url (kid policycheck-1)
+- name: VerificationResult
+  source: 'POST /api/v1/verify response'
+  fields: [valid, assessment_id, seller_domain, expires_at, verified_at, reason]
+- name: AuditRecord
+  source: 'GET /api/v1/audit-log response records[] (homepage example)'
+  fields: [id, event, seller_domain, agent_id, transaction_ref, analysis_status, confidence, 'flags[]', clause_count, non_boilerplate_count, timestamp]
+  relationships:
+  - belongs_to: APIKey (caller)
+    via: X-API-Key (implicit; not a field)
+  - has_many: Clause
+    via: flags
+- name: ComplianceReport
+  source: 'GET /api/v1/compliance-report?period='
+  fields: [period, total_checks, top_flags, top_domains, status_distribution, confidence_distribution]
+  relationships:
+  - aggregates: AuditRecord
+    via: period
+- name: SigningKey
+  source: 'GET /.well-known/jwks.json'
+  fields: [kty, crv, use, kid, x]
+schema_gaps:
+- The OpenAPI has no components.schemas; both responses are inline and the analyze-url response leaves summary/risks as untyped objects.
+- PolicyAnalysis, SignedAssessment, AuditRecord and ComplianceReport exist only in documentation prose and examples — no schema is published for the surface agents actually use.

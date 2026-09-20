@@ -1,0 +1,67 @@
+generated: '2026-09-19'
+method: derived
+source: openapi/policycheck-tools-openapi.yml
+docs: https://policycheck.tools/docs#response-fields
+format: json-error-string
+envelope:
+  media_type: application/json
+  fields:
+  - name: error
+    description: Human-readable message; the only field. No code, type URI, or documentation link.
+  example: {error: 'Provide seller_url (or url) or policy_text'}
+  a2a_variant:
+    media_type: application/json
+    shape: 'JSON-RPC 2.0 {jsonrpc, id, error: {code, message}}'
+  x402_variant:
+    shape: 'HTTP 402, body {} , PAYMENT-REQUIRED header (base64url x402Version 2 envelope)'
+  note: >-
+    Errors are a bare {"error": string} object — no RFC 9457 Problem Details, no stable error codes, no
+    application/problem+json. Unknown routes return the Next.js not-found HTML page (7,161 bytes) — under
+    /.well-known/ it is served with an application/json content-type, so a client must sniff the body.
+consistency_gap: >-
+  No published error reference. Messages are free text and differ per endpoint for the same condition
+  (missing input is "Missing required field: text" on the OpenAPI path and "Provide seller_url (or url) or
+  policy_text" on /api/check). The one machine-readable failure signal is not an HTTP error at all: a 200 with
+  analysis_status "no_content" and null scores, which the docs tell agents to treat as "no data".
+problem_types:
+- status: 400
+  title: Bad request - invalid input
+  source: 'OpenAPI analyzeLegalDocument 400 (schema {error: string})'
+  observed: '{"error":"Missing required field: text"} on POST /api/chatgpt/analyze {}'
+  remediation: Send the required text (or url on analyze-url); optional document_type must be one of terms, privacy, refund, shipping, other.
+- status: 400
+  title: Bad request - invalid URL
+  source: 'OpenAPI analyzeLegalDocumentFromURL 400'
+  remediation: Provide an absolute http(s) URL to the policy document.
+- status: 400
+  title: Missing input on /api/check or /api/v1/signed-assessment
+  observed: '{"error":"Provide seller_url (or url) or policy_text"} and {"error":"Provide seller_url (or url) or policy_text (or text)"}'
+  remediation: Provide at least one of url/seller_url or policy_text/text; both may be sent together.
+- status: 401
+  title: API key required
+  observed: '{"error":"X-API-Key header required"} on GET /api/v1/audit-log without a key; no WWW-Authenticate header'
+  applies_to: [GET /api/v1/audit-log, GET /api/v1/compliance-report]
+  remediation: Send X-API-Key. There is no self-serve issuance; contact api@policycheck.tools.
+- status: 402
+  title: Payment required (x402)
+  observed: 'POST /api/x402/analyze without X-PAYMENT -> 402, body {}, PAYMENT-REQUIRED header'
+  remediation: Decode the header, pay 30000 atomic USDC (0.03) on Base to payTo within maxTimeoutSeconds 300, retry with X-PAYMENT. See x402/policycheck-tools-x402.yml.
+- status: 404
+  title: Not found (Next.js not-found page)
+  observed: 'HTML shell, 7,161 bytes, text/html on ordinary paths and application/json under /.well-known/'
+  remediation: The route does not exist; do not parse the body as JSON.
+- status: 500
+  title: Server error
+  source: 'OpenAPI 500 on both operations (schema {error: string})'
+  remediation: Retry with backoff; the operations are read/compute, so a retry is safe.
+- status: 200
+  title: Analysis returned no content (soft failure)
+  observed: 'analysis_status "no_content", confidence "none", risk_score/buyer_protection_score/buyer_protection_rating null'
+  remediation: >-
+    Do not use the scores. Render the seller page yourself (JS-rendered and bot-protected sites cannot be
+    fetched server-side — the docs name Temu and Best Buy) and resubmit with policy_text, or escalate to a human.
+jsonrpc_errors:
+- code: -32001
+  message: PolicyCheck is stateless. Tasks complete immediately via message/send.
+  observed: POST /api/a2a tasks/get
+  remediation: Use message/send only; the task in the response is already completed and cannot be fetched later.

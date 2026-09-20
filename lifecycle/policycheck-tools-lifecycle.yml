@@ -1,0 +1,57 @@
+generated: '2026-09-19'
+method: searched
+source: https://policycheck.tools/docs
+derived_from: openapi/policycheck-tools-openapi.yml
+versioning:
+  scheme: mixed — /api/v1/ prefix on the signed-assessment, verify, audit-log and compliance-report endpoints; unversioned /api/check, /api/a2a, /api/x402/analyze, /api/clause-registry; legacy /api/chatgpt/* in the OpenAPI
+  current_version: v1
+  spec_url: https://policycheck.tools/openapi.json
+  spec_version: 1.0.0
+  base_url: https://policycheck.tools
+  policy_published: false
+  clause_registry:
+    live_version: 2.0.0
+    docs_version: 1.0.1
+    stability_promise: 'IDs are stable within a major version — safe to write agent rules against.'
+    note: >-
+      The live registry (GET /api/clause-registry) is at 2.0.0 with 18 clause IDs and an is_standard_boilerplate
+      flag per clause; the docs table still says 1.0.1 and lists 22 clause types (it includes no_returns,
+      non_refundable_categories, no_tracking and long_handling_time, which the live 2.0.0 registry does not).
+      The major-version bump means the stability promise did not carry those four IDs forward, and no changelog
+      records the change.
+  note: >-
+    No written versioning policy. The contract lags the product: the OpenAPI (info.version 1.0.0, title still
+    "LegalEasy API") describes the two legacy ChatGPT-plugin operations and none of the ten endpoints the docs
+    and llms.txt document.
+deprecation:
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  rfc8594: false
+  deprecated_operations: []
+  note: >-
+    Zero of 2 OpenAPI operations carry deprecated: true; no Sunset or Deprecation headers are documented or
+    declared. The legacy ChatGPT-plugin surface (/api/chatgpt/*, ai-plugin.json branded LegalEasy) is still
+    served and undeprecated alongside the newer /api/check surface, and the retired legaleasy.tools domain is
+    kept alive as a 308 redirect (which is what keeps the 2026-02 policycheck-mcp package working).
+status_page:
+  url: null
+  note: No status page. /status 404; none is linked from the docs, llms.txt or agent card.
+changelog:
+  url: null
+  note: No changelog. /changelog 404; the blog (one post, 2026-03-07) is editorial, not release notes.
+sla:
+  published: false
+  support_response: 'Within 24 hours (business days) — https://policycheck.tools/legal (Support section)'
+time_bound_artifacts:
+  signed_assessment_expiry: 5 minutes (expires_at in the envelope; enforced by POST /api/v1/verify)
+  analysis_cache: 24 hours per seller domain
+  jwks_cache: 1 hour
+  jwks_kid: policycheck-1
+  key_rotation_policy: undocumented
+release_signals:
+- {artifact: policycheck-mcp npm package, version: 1.0.2, date: '2026-02-13'}
+- {artifact: agent card, version: 1.0.0, protocolVersion: 0.2.0}
+- {artifact: legal page, last_updated: '2026-03-07'}
+- {artifact: blog, last_post: '2026-03-07'}
+- {artifact: clause registry, version: 2.0.0}

@@ -1,0 +1,81 @@
+generated: '2026-09-19'
+method: searched
+source: https://policycheck.tools/docs
+docs:
+- https://policycheck.tools/docs#rate-limits
+- https://policycheck.tools/.well-known/agent.json
+- https://policycheck.tools/llms.txt
+derived_from: openapi/policycheck-tools-openapi.yml
+summary: >-
+  PolicyCheck is anonymous by default: the primary analysis endpoints (/api/check, /api/a2a, /api/clause-registry,
+  /api/v1/signed-assessment, /api/v1/verify, /.well-known/jwks.json) accept requests with no credential, and the
+  published OpenAPI declares no securitySchemes at all. Two account-scoped endpoints — /api/v1/audit-log and
+  /api/v1/compliance-report — require an X-API-Key header (live 401 "X-API-Key header required" without one), and
+  the paid /api/x402/analyze endpoint is gated by payment (HTTP 402) rather than identity. The agent card declares
+  a blanket X-API-Key requirement that the live free endpoints do not enforce. No signup or key-issuance page
+  exists; the only published route to a key is the agent card's "Contact api@policycheck.tools for higher limits".
+schemes:
+- id: anonymous
+  type: none
+  applies_to:
+  - POST /api/check
+  - POST /api/a2a
+  - GET /api/clause-registry
+  - POST /api/v1/signed-assessment
+  - POST /api/v1/verify
+  - GET /.well-known/jwks.json
+  - POST /api/chatgpt/analyze (OpenAPI analyzeLegalDocument)
+  - POST /api/chatgpt/analyze-url (OpenAPI analyzeLegalDocumentFromURL)
+  evidence:
+  - 'POST /api/check {} -> 400 {"error":"Provide seller_url (or url) or policy_text"} (not 401)'
+  - 'POST /api/v1/signed-assessment {} -> 400 {"error":"Provide seller_url (or url) or policy_text (or text)"} (not 401)'
+  - 'POST /api/a2a tasks/get -> 200 JSON-RPC error -32001 (served without a key)'
+  - 'POST /api/chatgpt/analyze {} -> 400 {"error":"Missing required field: text"}'
+  - 'ai-plugin.json auth.type = none'
+  note: >-
+    X-API-Key is OPTIONAL on /api/v1/signed-assessment: the homepage example sends it so the check is attributed
+    to the caller's audit trail (with agent_id and transaction_ref), but the endpoint answers without it.
+- id: apiKey
+  type: apiKey
+  in: header
+  name: X-API-Key
+  applies_to:
+  - GET /api/v1/audit-log
+  - GET /api/v1/compliance-report
+  - POST /api/v1/signed-assessment (optional; attributes the check to your audit trail)
+  evidence:
+  - 'GET /api/v1/audit-log -> 401 {"error":"X-API-Key header required"}; no WWW-Authenticate header'
+  - 'agent card securitySchemes.apiKey: type apiKey, in header, name X-API-Key'
+  key_issuance:
+    self_serve: false
+    signup_url: null
+    contact: api@policycheck.tools
+    note: 'Agent card: "Free tier: 100 requests/minute. Contact api@policycheck.tools for higher limits." No docs page explains how to obtain a key.'
+  key_format: undocumented
+- id: x402
+  type: payment
+  in: header
+  name: X-PAYMENT
+  applies_to:
+  - POST /api/x402/analyze
+  evidence:
+  - 'POST /api/x402/analyze {} -> 402 with PAYMENT-REQUIRED header (x402Version 2, $0.03 USDC on Base)'
+  note: Payment-gated, not identity-gated; see x402/policycheck-tools-x402.yml.
+oauth2: false
+openid_connect: false
+mutual_tls: false
+protected_resource_metadata: false
+dynamic_client_registration: false
+delegated_identity: false
+in_spec:
+  security_schemes_declared: false
+  note: >-
+    The published OpenAPI declares no components.securitySchemes and no security requirement, which is accurate
+    for the two anonymous operations it contains but leaves the X-API-Key endpoints entirely outside the
+    contract. derive-authentication.py therefore produced nothing; this profile is built from the docs, the
+    agent card and live probes.
+gaps:
+- No self-serve key issuance; no documented key format, rotation or revocation.
+- The agent card says every call needs X-API-Key; the docs and the live endpoints say the analysis surface is free and anonymous. Agents that trust the card will stall on a credential they cannot obtain.
+- No WWW-Authenticate challenge on the 401, so a client cannot discover the scheme from the response.
+- No OAuth, OIDC or RFC 9728 metadata anywhere (all /.well-known discovery paths 404).

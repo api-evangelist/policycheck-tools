@@ -1,0 +1,47 @@
+generated: '2026-09-19'
+method: probed
+source: >-
+  POST https://policycheck.tools/api/x402/analyze with an empty JSON body and no X-PAYMENT header on
+  2026-09-19 (no payment was made). Challenge cross-checked against https://policycheck.tools/docs#endpoint-x402
+  and the x402 Bazaar listing named in llms.txt.
+summary: >-
+  The one paid resource PolicyCheck documents answers a REAL x402 challenge: HTTP 402 with an empty JSON body
+  and a PAYMENT-REQUIRED response header carrying a base64url-encoded x402Version 2 envelope — one accepts[]
+  entry (scheme exact, network eip155:8453 = Base mainnet, amount 30000 of USDC 0x8335...2913 = $0.03, a fixed
+  payTo address, maxTimeoutSeconds 300) plus a "bazaar" extension that describes the resource's HTTP input
+  (POST, JSON body with url / sellerUrl / text) and an example output, with a JSON Schema for both. That
+  extension is a provider-published machine-readable contract for the x402 surface and is saved verbatim
+  (decoded) rather than re-authored. Unknown paths on the host return a clean 404, so the 402 is
+  resource-specific. The free endpoints (/api/check, /api/a2a) answer 400 without payment, not 402.
+protocol:
+  name: x402
+  version: 2
+  challenge_location: PAYMENT-REQUIRED response header (base64url JSON); response body is "{}"
+  headers_observed: [payment-required, content-type, cache-control, strict-transport-security, server, x-matched-path, x-vercel-cache, x-vercel-id, vary]
+  rate_limit_headers_observed: []
+  scheme: exact
+  max_timeout_seconds: 300
+  accepts_rails:
+  - {network: 'eip155:8453 (Base mainnet)', asset: 'USD Coin (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)', decimals: 6, eip712_domain: {name: USD Coin, version: '2'}}
+  pay_to: '0x5fEB3281d7E81Ea5e55AAeA96639DaaCA5d601c1'
+  discovery: 'x402 Bazaar (https://bazaar.x402.org) per llms.txt; bazaar extension embedded in the challenge'
+  client_docs: https://policycheck.tools/docs#endpoint-x402
+resources:
+- resource: https://policycheck.tools/api/x402/analyze
+  method: POST
+  status: 402
+  file: policycheck-tools-analyze-402-challenge.json
+  price_usd: '0.03'
+  amount_atomic: '30000'
+  description: PolicyCheck premium analysis — full risk assessment with detailed findings
+  input_body_fields: [url, sellerUrl, text]
+  input_body_fields_per_docs: [url, sellerUrl, seller_url, text, policy_text]
+  output_schema: 'object {payment: {settled, transaction, network, payer}, analysis: same fields as /api/check}'
+  rest_equivalent: 'POST /api/check (free; documented, not in the OpenAPI)'
+  note: >-
+    The docs call this "premium analysis" but describe the analysis payload as the same fields as the free
+    /api/check; the difference is the payment envelope and the on-chain receipt, not a richer result.
+negative_control:
+  url: https://policycheck.tools/api/x402/nonexistent-control
+  status: null
+  note: Not probed separately; the host's generic 404 behaviour was established by the well-known negative control (see well-known/).

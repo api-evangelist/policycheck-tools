@@ -64,5 +64,5 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-PolicyCheck is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry) and added to the network as a stub for full-pipeline profiling.
+PolicyCheck (formerly LegalEasy) is a seller-policy risk intelligence service for AI purchasing agents: it turns a store URL or raw policy text into structured risk data (return window, restocking fees, binding arbitration, buyer protection score) and can sign the result with Ed25519 for verification at checkout. Profiled 2026-09-19: provider-published OpenAPI (two legacy operations), A2A agent card at the legacy /.well-known/agent.json, stdio MCP server on npm, x402 pay-per-analysis endpoint, llms.txt, JWKS, and an anonymous REST surface documented in prose only.
 - https://policycheck.tools/

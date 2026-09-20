@@ -1,0 +1,127 @@
+{
+  "x402Version": 2,
+  "error": "Payment required",
+  "resource": {
+    "url": "https://policycheck.tools/api/x402/analyze",
+    "description": "PolicyCheck premium analysis \u2014 full risk assessment with detailed findings",
+    "mimeType": "application/json"
+  },
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "amount": "30000",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "payTo": "0x5fEB3281d7E81Ea5e55AAeA96639DaaCA5d601c1",
+      "maxTimeoutSeconds": 300,
+      "extra": {
+        "name": "USD Coin",
+        "version": "2"
+      }
+    }
+  ],
+  "extensions": {
+    "bazaar": {
+      "info": {
+        "input": {
+          "type": "http",
+          "bodyType": "json",
+          "body": {
+            "url": "https://example.com/policies/refund-policy"
+          },
+          "method": "POST"
+        },
+        "output": {
+          "type": "json",
+          "example": {
+            "payment": {
+              "settled": true,
+              "transaction": "0x...",
+              "network": "eip155:8453",
+              "payer": "0x..."
+            },
+            "analysis": {
+              "riskLevel": "high",
+              "buyerProtectionScore": 35,
+              "summary": "High risk indicators detected. 3 of 5 policy categories flagged. Binding arbitration limits dispute resolution. Class action waiver present. No refund policy.",
+              "keyFindings": [
+                "Binding arbitration clause found",
+                "Class action waiver present",
+                "No refund policy"
+              ]
+            }
+          }
+        }
+      },
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "http"
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "POST"
+                ]
+              },
+              "bodyType": {
+                "type": "string",
+                "enum": [
+                  "json",
+                  "form-data",
+                  "text"
+                ]
+              },
+              "body": {
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "URL of a policy page to analyse"
+                  },
+                  "sellerUrl": {
+                    "type": "string",
+                    "description": "Seller homepage URL \u2014 auto-discovers all policy pages"
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Raw policy/terms text to analyse"
+                  }
+                }
+              }
+            },
+            "required": [
+              "type",
+              "bodyType",
+              "body",
+              "method"
+            ],
+            "additionalProperties": false
+          },
+          "output": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "example": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "input"
+        ]
+      }
+    }
+  }
+}

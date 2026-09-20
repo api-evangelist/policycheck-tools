@@ -1,0 +1,34 @@
+generated: '2026-09-19'
+method: searched
+source: https://policycheck.tools/.well-known/agent.json
+docs: https://policycheck.tools/docs#rate-limits
+limit_count: 1
+summary: >-
+  Two provider statements disagree. The docs say the free endpoints are "currently free with no enforced rate
+  limits"; the agent card's X-API-Key scheme description says "Free tier: 100 requests/minute. Contact
+  api@policycheck.tools for higher limits." The 100/minute figure is the only numeric limit the provider
+  publishes and is recorded as the limit; no rate-limit response headers are documented or were observed, and
+  no exhaustion status code is published.
+rate_limits:
+- name: Free tier
+  scope: per-key
+  limit: 100
+  window: 60s
+  metric: request
+  burst: null
+  applies_to: [all endpoints (as stated in the agent card securitySchemes.apiKey description)]
+  source: https://policycheck.tools/.well-known/agent.json
+  quote: 'Free tier: 100 requests/minute. Contact api@policycheck.tools for higher limits.'
+  condition: Stated for API-key holders; the docs say the anonymous /api/check and /api/a2a endpoints have no enforced limit during beta.
+  domains: [policycheck.tools]
+headers:
+  documented: []
+  observed_on_live_400: [cache-control, content-type, strict-transport-security, x-matched-path, x-vercel-cache, x-vercel-id, access-control-allow-origin]
+  note: No RateLimit-*, X-RateLimit-* or Retry-After header on any observed response.
+exhaustion:
+  status: undocumented
+  note: No 429 behaviour is documented.
+caching_as_throttle:
+  note: 'Results are cached by seller domain for 24 hours server-side; repeated requests for the same seller return the cached result. Providing policy_text bypasses the cache.'
+paid_endpoint:
+  note: POST /api/x402/analyze is metered by payment ($0.03 per request) rather than by a rate limit.

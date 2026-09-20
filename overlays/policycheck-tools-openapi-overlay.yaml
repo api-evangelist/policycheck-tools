@@ -1,0 +1,60 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the PolicyCheck OpenAPI
+  version: 1.0.0
+extends: ../openapi/policycheck-tools-openapi.yml
+x-generated: '2026-09-19'
+x-method: derived
+x-source: >-
+  Derived from openapi/policycheck-tools-openapi.yml (verbatim from https://policycheck.tools/openapi.json)
+  plus the searched artifacts in this repo. Captures API Evangelist annotations without mutating the
+  provider's contract.
+actions:
+- target: $.info
+  description: Record the product's current name, the discovery surface, and the fact that the contract describes the legacy plugin operations only.
+  update:
+    x-provider: PolicyCheck
+    x-former-name: LegalEasy (legaleasy.tools 308-redirects to policycheck.tools)
+    x-documentation: https://policycheck.tools/docs
+    x-llms-txt: https://policycheck.tools/llms.txt
+    x-agent-card: https://policycheck.tools/.well-known/agent.json
+    x-mcp-package: https://www.npmjs.com/package/policycheck-mcp
+    x-jwks: https://policycheck.tools/.well-known/jwks.json
+    x-contract-lag:
+      note: The following documented endpoints are not in this contract.
+      endpoints:
+      - POST /api/check
+      - POST /api/a2a
+      - POST /api/x402/analyze
+      - GET /api/clause-registry
+      - POST /api/v1/signed-assessment
+      - POST /api/v1/verify
+      - GET /api/v1/audit-log
+      - GET /api/v1/compliance-report
+- target: $.servers[0]
+  description: Name the single production host.
+  update:
+    description: Production (also the website and docs host)
+- target: $
+  description: Declare the auth posture the contract omits — both operations are anonymous; the keyed endpoints are outside the contract.
+  update:
+    x-authentication: authentication/policycheck-tools-authentication.yml
+    x-rate-limits: rate-limits/policycheck-tools-rate-limits.yml
+    x-conventions: conventions/policycheck-tools-conventions.yml
+    x-errors: errors/policycheck-tools-problem-types.yml
+    tags:
+    - name: Legal Document Analysis
+      description: Legacy ChatGPT-plugin analysis operations (LegalEasy era) that remain live.
+- target: $.paths['/api/chatgpt/analyze'].post
+  description: Tag the operation and record agent-readiness semantics.
+  update:
+    tags: [Legal Document Analysis]
+    x-agentic-access: {action-class: read, consequence: none, idempotent: true, reversible: not-applicable}
+    x-rate-limit: {limit: 100, window: 60s, source: agent card}
+- target: $.paths['/api/chatgpt/analyze-url'].post
+  description: Tag the operation and record agent-readiness semantics.
+  update:
+    tags: [Legal Document Analysis]
+    x-agentic-access: {action-class: read, consequence: none, idempotent: true, reversible: not-applicable}
+    x-rate-limit: {limit: 100, window: 60s, source: agent card}
+    x-note: Server-side fetch cannot read JS-rendered or bot-protected pages; supply the text via /api/chatgpt/analyze instead.

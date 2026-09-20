@@ -1,0 +1,123 @@
+generated: '2026-09-19'
+method: probed
+source: >-
+  Live GET probes of the named /.well-known/* path list on policycheck.tools, www.policycheck.tools and
+  legaleasy.tools (the product's former domain) on 2026-09-19. Every row is a request that was issued; every
+  status is the one returned.
+summary:
+  hosts_probed: 3
+  paths_probed: 30
+  documents_served: 3
+  hit_count: 3
+  path_echo_control: passed
+  note: >-
+    policycheck.tools serves three real well-known documents: an A2A agent card at the legacy
+    /.well-known/agent.json (captured in a2a/), an OpenAI plugin manifest at /.well-known/ai-plugin.json (still
+    branded "LegalEasy", pointing at the same openapi.json), and an Ed25519 JWKS at /.well-known/jwks.json
+    that verifies the signed-assessment envelopes. No security.txt, no OAuth/OIDC discovery, no RFC 9727 API
+    catalog, no APIs.json, no UCP/ACP agentic-commerce document. Unknown /.well-known/* paths return a genuine
+    404 (Next.js not-found shell, 7,161 bytes, served with an application/json content-type but an HTML body),
+    and the negative-control path 404'd, so the three hits are real documents and not a catch-all. There is no
+    MCP host to add to this set: PolicyCheck ships a stdio MCP package only (mcp/policycheck-tools-mcp.yml),
+    and /.well-known/mcp.json, /mcp and /api/mcp all 404.
+hosts:
+- host: policycheck.tools
+  role: Website, docs host, API host and OpenAPI servers[] host (one host serves everything)
+  soft_404_control:
+    path: /.well-known/policycheck-tools-negative-control-9c1f3a7e.json
+    status: 404
+    bytes: 7161
+    note: Genuine 404 on a path that cannot exist; the host is not a catch-all.
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/api-catalog.json
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 200
+    content_type: application/json; charset=utf-8
+    bytes: 1179
+    file: policycheck-tools-ai-plugin.json
+    standard: OpenAI plugin manifest (schema_version v1)
+    note: >-
+      name_for_model "legaleasy", auth type none, api.url https://policycheck.tools/openapi.json,
+      legal_info_url https://policycheck.tools/legal (200), contact support@policycheck.tools. A legacy
+      ChatGPT-plugin manifest for the product's former name that still resolves entirely on this host.
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 200
+    content_type: application/json; charset=utf-8
+    bytes: 7009
+    file: policycheck-tools-agent.json
+    standard: A2A Agent Card (protocolVersion 0.2.0, legacy path)
+    note: Captured verbatim and graded in a2a/policycheck-tools-a2a.yml.
+  - path: /.well-known/jwks.json
+    status: 200
+    content_type: application/json
+    bytes: 124
+    file: policycheck-tools-jwks.json
+    standard: RFC 7517 JWK Set with an RFC 8037 OKP/Ed25519 key (kid policycheck-1, use sig)
+    note: Not on the named probe list; probed because the docs and agent card name it as the verification key for signed assessments.
+  - path: /.well-known/mcp.json
+    status: 404
+- host: www.policycheck.tools
+  role: www alias
+  documents: []
+  note: >-
+    Resolves in DNS (76.76.21.21, Vercel) but the TLS connection fails and plain HTTP returns nothing
+    (curl exit 000 on both); the www host serves no content and no redirect. Nothing to probe.
+- host: legaleasy.tools
+  role: Former product domain; every path 308-redirects to the same path on policycheck.tools
+  documents:
+  - path: /.well-known/security.txt
+    status: 308
+    redirect: https://policycheck.tools/.well-known/security.txt
+  - path: /.well-known/openid-configuration
+    status: 308
+    redirect: https://policycheck.tools/.well-known/openid-configuration
+  - path: /.well-known/oauth-authorization-server
+    status: 308
+    redirect: https://policycheck.tools/.well-known/oauth-authorization-server
+  - path: /.well-known/oauth-protected-resource
+    status: 308
+    redirect: https://policycheck.tools/.well-known/oauth-protected-resource
+  - path: /.well-known/api-catalog
+    status: 308
+    redirect: https://policycheck.tools/.well-known/api-catalog
+  - path: /.well-known/ai-plugin.json
+    status: 308
+    redirect: https://policycheck.tools/.well-known/ai-plugin.json
+  - path: /.well-known/agent-card.json
+    status: 308
+    redirect: https://policycheck.tools/.well-known/agent-card.json
+  - path: /.well-known/agent.json
+    status: 308
+    redirect: https://policycheck.tools/.well-known/agent.json
+  - path: /.well-known/apis.json
+    status: 308
+    redirect: https://policycheck.tools/.well-known/apis.json
+  - path: /apis.json
+    status: 308
+    redirect: https://policycheck.tools/apis.json
+  note: Redirect-only host; the documents it points at are the policycheck.tools rows above. No document is served from this host itself.

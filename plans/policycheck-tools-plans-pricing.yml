@@ -1,0 +1,38 @@
+generated: '2026-09-19'
+method: searched
+source: https://policycheck.tools/docs#rate-limits
+docs: https://policycheck.tools/docs#rate-limits
+plan_count: 2
+currency: USD
+model: Free beta for the REST and A2A endpoints; pay-per-request x402 micropayment for the paid endpoint
+plans:
+- id: free-beta
+  name: Free (beta)
+  price: 0
+  currency: USD
+  period: null
+  included:
+  - POST /api/check
+  - POST /api/a2a
+  - GET /api/clause-registry
+  - POST /api/v1/signed-assessment and /api/v1/verify
+  - MCP server (npx policycheck-mcp) and A2A agent card
+  limits: 'Docs: "currently free with no enforced rate limits"; agent card: "Free tier: 100 requests/minute"'
+  quote: 'Free during beta. The /api/check and /api/a2a endpoints are currently free with no enforced rate limits.'
+- id: x402-per-analysis
+  name: x402 pay-per-analysis
+  price: 0.03
+  currency: USD
+  unit: per analysis
+  settlement: USDC on Base mainnet (eip155:8453), 30000 atomic units, scheme exact, 300 s timeout
+  included:
+  - POST /api/x402/analyze — the /api/check analysis fields inside a payment envelope with an on-chain receipt
+  quote: 'The /api/x402/analyze endpoint charges $0.03 per analysis via on-chain micropayment.'
+  evidence: live 402 challenge on 2026-09-19 (x402/policycheck-tools-x402.yml)
+higher_limits:
+  route: 'Contact api@policycheck.tools for higher limits (agent card securitySchemes description)'
+  self_serve: false
+notes:
+- The agent card advertises pricing.model "freemium" with details at https://policycheck.tools/pricing, which returns 404; the docs section above is the only published price list.
+- The /legal page (still branded LegalEasy) mentions "Paid plans are billed monthly through Shopify" for the Shopify app without stating any price; not counted as an API plan.
+- No enterprise tier, no quota table, no overage schedule is published.

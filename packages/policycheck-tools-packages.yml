@@ -1,0 +1,34 @@
+generated: '2026-09-19'
+method: searched
+source: https://registry.npmjs.org/policycheck-mcp
+docs: https://policycheck.tools/docs#discovery
+note: >-
+  PolicyCheck publishes exactly one package: the policycheck-mcp MCP server on npm. It is first-party (linked
+  from the homepage, the docs Discovery table and llms.txt; authored by the same GitHub account that owns the
+  product repo). It is an MCP server binary, not a client SDK — no client library exists on npm, PyPI
+  (policycheck and policycheck-mcp both 404), or any other registry searched, so no SDKs pointer is emitted.
+  version/published were read from the registry metadata endpoint on 2026-09-19.
+packages:
+- language: javascript
+  name: policycheck-mcp
+  kind: mcp-server
+  registry: npm
+  official: true
+  url: https://www.npmjs.com/package/policycheck-mcp
+  install: npx -y policycheck-mcp
+  repository: https://github.com/vibegpt/T-C-Widget/tree/main/policycheck-mcp
+  version: 1.0.2
+  published: '2026-02-13'
+  first_published: '2026-02-13'
+  license: MIT
+  author: vibegpt
+  dependencies: {'@modelcontextprotocol/sdk': '^1.12.1'}
+  bin: policycheck-mcp
+  note: >-
+    Three releases in one day (1.0.0 -> 1.0.2 on 2026-02-13) and nothing since; the package still defaults to
+    the retired legaleasy.tools A2A URL, which works only because that host 308-redirects.
+registries_checked:
+- {registry: npm, query: policycheck-mcp, result: found}
+- {registry: pypi, query: policycheck, result: 404}
+- {registry: pypi, query: policycheck-mcp, result: 404}
+- {registry: github, query: 'org/user policycheck', result: 404 (no such account; code lives under github.com/vibegpt)}

@@ -1,0 +1,76 @@
+generated: '2026-09-19'
+method: derived
+source: >-
+  Derived by aligning the three MCP tools read verbatim from policycheck-mcp 1.0.2 server.js
+  (mcp/policycheck-tools-mcp.yml), the seven skills in the A2A agent card (a2a/), and the two operations in
+  the provider-published OpenAPI (openapi/policycheck-tools-openapi.yml) with the REST endpoints documented
+  at https://policycheck.tools/docs. Confidence per row.
+purpose: >-
+  Record how PolicyCheck's four agent-facing projections — MCP tools, A2A skills, the published OpenAPI and
+  the documented-but-uncontracted REST endpoints — relate. They are not projections of one contract: the
+  OpenAPI describes the legacy ChatGPT-plugin surface, the MCP tools bridge onto A2A, and the richest surface
+  (/api/check, signed assessments, audit log) exists only as prose documentation.
+surfaces:
+  rest_openapi: openapi/policycheck-tools-openapi.yml
+  rest_openapi_note: 2 operations (analyzeLegalDocument, analyzeLegalDocumentFromURL) on /api/chatgpt/*; both answer live.
+  rest_documented_only: https://policycheck.tools/docs#endpoints
+  a2a: https://policycheck.tools/api/a2a
+  a2a_note: Live, anonymous, JSON-RPC 2.0 message/send only (tasks/get -> -32001 stateless).
+  mcp: npx -y policycheck-mcp (stdio; no hosted endpoint)
+  mcp_note: tools/list read from the package source, so it is not gated — but it is not reachable remotely either.
+  graphql: null
+crosswalk:
+- tool: check_policy_text
+  category: analysis
+  rest: [analyzeLegalDocument]
+  binding: a2a
+  confidence: low
+  note: >-
+    Same input (a raw text body) and the same job (clause detection + risk assessment), but the MCP tool
+    travels via A2A message/send with a text part and returns the /api/check-shaped artifact (risk_score,
+    flags, clauses, analysis_status), while analyzeLegalDocument returns the legacy LegalEasy shape (summary
+    sections, risks booleans, key_findings). The documented REST equivalent is POST /api/check {policy_text},
+    which has no operationId because it is not in the OpenAPI.
+- tool: analyze_seller
+  category: analysis
+  rest: [analyzeLegalDocumentFromURL]
+  binding: a2a
+  confidence: low
+  note: >-
+    Both take a URL to a single policy page and analyse it; response shapes differ as above. Documented REST
+    equivalent POST /api/check {url}. Maps to A2A skill comprehensive-policy-analysis.
+mcp_only:
+- tool: quick_risk_check
+  reason: >-
+    Auto-discovers a seller's policy pages from the homepage URL and scores them together. No OpenAPI
+    operation does this; the documented equivalent is POST /api/check {seller_url}, and the A2A skill is
+    quick-risk-check. It is MCP-only relative to the published contract, not relative to the product.
+rest_only:
+- capability: legacy ChatGPT-plugin analysis
+  operations: [analyzeLegalDocument, analyzeLegalDocumentFromURL]
+  note: Bound above at low confidence; listed here because no MCP tool calls these paths directly.
+a2a_only:
+- skill: return-policy-analysis
+- skill: shipping-policy-analysis
+- skill: warranty-analysis
+- skill: terms-and-conditions-analysis
+- skill: signed-assessment
+  note: The signed-assessment skill fronts POST /api/v1/signed-assessment + /api/v1/verify + /.well-known/jwks.json, none of which has an MCP tool or an OpenAPI operation.
+documented_rest_without_contract:
+- {method: POST, path: /api/check, note: primary endpoint; CORS-enabled; anonymous}
+- {method: POST, path: /api/a2a, note: JSON-RPC 2.0 A2A}
+- {method: POST, path: /api/x402/analyze, note: 402-gated, $0.03 USDC on Base — see x402/}
+- {method: GET, path: /api/clause-registry, note: live, version 2.0.0}
+- {method: POST, path: /api/v1/signed-assessment, note: Ed25519 signed envelope; optional agent_id/transaction_ref}
+- {method: POST, path: /api/v1/verify, note: stateless signature verification}
+- {method: GET, path: /api/v1/audit-log, note: X-API-Key required (live 401 without one)}
+- {method: GET, path: /api/v1/compliance-report, note: X-API-Key required}
+coverage:
+  mcp_tools: 3
+  mcp_tools_bound_to_openapi: 2
+  mcp_only: 1
+  a2a_skills: 7
+  a2a_skills_with_mcp_tool: 2
+  openapi_operations: 2
+  openapi_operations_with_tool: 2
+  documented_endpoints_outside_openapi: 8

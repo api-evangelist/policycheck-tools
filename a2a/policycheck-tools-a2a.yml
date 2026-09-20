@@ -1,0 +1,148 @@
+generated: '2026-09-19'
+method: probed
+source: https://policycheck.tools/.well-known/agent.json
+card:
+  file: a2a/policycheck-tools-agent-card.json
+discovery:
+  path: /.well-known/agent.json
+  canonical: false
+  host: policycheck.tools
+  note: >-
+    Found at the pre-0.3 legacy path only. https://policycheck.tools/.well-known/agent-card.json (the A2A 1.0.0 /
+    RFC 8615 canonical path) returned 404 on the same day. The provider itself links the legacy path from its
+    homepage nav ("Agent Card"), its docs Discovery table, its llms.txt and the card's own wellKnownURI field, so
+    the legacy location is the one PolicyCheck publishes, not an accident. https://legaleasy.tools (the product's
+    former name) 308-redirects both paths to policycheck.tools.
+  ownership: >-
+    The card is served from the provider's registrable domain; provider.organization is "PolicyCheck" with
+    provider.url https://policycheck.tools; url points at https://policycheck.tools/api/a2a on the same host,
+    which answered a live JSON-RPC 2.0 request; contact.email is support@policycheck.tools.
+x-evidence:
+  fetched: '2026-09-19'
+  url: https://policycheck.tools/.well-known/agent.json
+  http_status: 200
+  content_type: application/json; charset=utf-8
+  body_bytes: 7009
+  body_parses_as: JSON object with AgentCard shape (name, url, version, protocolVersion, capabilities, skills all present)
+  corroborating_probes:
+  - url: https://policycheck.tools/.well-known/agent-card.json
+    http_status: 404
+    note: application/json content-type carrying the Next.js not-found HTML shell (7,161 bytes) — a real miss, not a card.
+  - url: https://policycheck.tools/api/a2a
+    method: POST tasks/get (JSON-RPC 2.0, no credentials)
+    http_status: 200
+    body: '{"jsonrpc":"2.0","id":1,"error":{"code":-32001,"message":"PolicyCheck is stateless. Tasks complete immediately via message/send."}}'
+    note: >-
+      The declared A2A endpoint is live and speaks JSON-RPC 2.0 without an API key. It rejects tasks/get by design
+      (stateless; message/send only), which is itself a deviation from the A2A task lifecycle the card's
+      protocolVersion implies.
+  - url: https://legaleasy.tools/api/a2a
+    method: POST (followed redirects)
+    http_status: 200
+    note: 308 to https://policycheck.tools/api/a2a with the POST method preserved — the URL the policycheck-mcp npm package still calls by default.
+  - url: https://policycheck.tools/docs/a2a
+    http_status: 404
+    note: The card's documentationUrl is dead; the A2A documentation actually lives at https://policycheck.tools/docs#endpoint-a2a.
+  - url: https://policycheck.tools/pricing
+    http_status: 404
+    note: The card's pricing.details URL is dead; pricing is stated only in the docs "Rate Limits & Pricing" section.
+agent_card:
+  name: PolicyCheck
+  description: >-
+    Seller policy risk intelligence for AI-powered commerce. Analyses seller return policies, shipping terms,
+    warranty coverage, terms & conditions, and privacy policies and returns structured risk data for purchasing
+    agents.
+  version: 1.0.0
+  url: https://policycheck.tools/api/a2a
+  documentation_url: https://policycheck.tools/docs/a2a
+  provider:
+    organization: PolicyCheck
+    url: https://policycheck.tools
+  protocol_version: 0.2.0
+  capabilities:
+    streaming: false
+    push_notifications: false
+    state_transition_history: false
+    signed_assessments:
+      version: '1.0'
+      assessment_endpoint: /api/v1/signed-assessment
+      verify_endpoint: /api/v1/verify
+      jwks_endpoint: /.well-known/jwks.json
+      signing_algorithm: Ed25519
+  default_input_modes: [text/plain, application/json]
+  default_output_modes: [application/json]
+  security:
+  - apiKey: []
+  security_schemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: 'API key for authenticated access. Free tier: 100 requests/minute. Contact api@policycheck.tools for higher limits.'
+  skill_count: 7
+  skills:
+  - {id: comprehensive-policy-analysis, name: Comprehensive Policy Analysis}
+  - {id: quick-risk-check, name: Quick Risk Check}
+  - {id: return-policy-analysis, name: Return Policy Analysis}
+  - {id: shipping-policy-analysis, name: Shipping Policy Analysis}
+  - {id: warranty-analysis, name: Warranty Analysis}
+  - {id: terms-and-conditions-analysis, name: Terms & Conditions Analysis}
+  - {id: signed-assessment, name: Signed Seller Assessment}
+  non_standard_fields: [wellKnownURI, homepage, license, pricing, contact, capabilities.signed_assessments]
+conformance:
+  spec: A2A 1.0.0
+  grade: conformant
+  protocol_version: 0.2.0
+  preferred_transport: null
+  transport: JSONRPC (single top-level url; no supportedInterfaces/additionalInterfaces)
+  hard_checks:
+    capabilities_is_object: true
+    protocol_version_present: true
+    skills_is_array: true
+  optional_fields:
+    default_input_modes: true
+    default_output_modes: true
+    preferred_transport: false
+  grade_basis: >-
+    Graded against the three A2A 1.0.0 hard checks: capabilities is an OBJECT (streaming, pushNotifications,
+    stateTransitionHistory as booleans, plus a vendor extension), protocolVersion is present ("0.2.0"), and
+    skills is an ARRAY of seven fully-populated skills (id, name, description, tags, inputModes, outputModes,
+    examples). defaultInputModes and defaultOutputModes are declared. preferredTransport is absent, which is
+    consistent with the 0.2.x card shape the document declares (preferredTransport arrived in 0.3), so it is
+    recorded as an optional-field gap rather than a hard failure. The grade is about card shape; the deviations
+    below record that the card describes a 0.2-era protocol and that two of its own URLs are dead.
+  deviations:
+  - field: discovery path
+    observed: /.well-known/agent.json
+    note: Legacy pre-0.3 location; the canonical /.well-known/agent-card.json 404s. A 1.0-era client that probes only the canonical path will not find PolicyCheck.
+  - field: protocolVersion
+    observed: '0.2.0'
+    note: Declares a pre-release protocol version. The card carries the 0.2-shaped top-level url and no supportedInterfaces[], so it cannot express a protocolBinding or a second transport.
+  - field: documentationUrl
+    observed: https://policycheck.tools/docs/a2a (HTTP 404)
+    note: Dead link inside the card; the working page is https://policycheck.tools/docs#endpoint-a2a.
+  - field: pricing.details
+    observed: https://policycheck.tools/pricing (HTTP 404)
+    note: Dead link inside the card.
+  - field: security / securitySchemes
+    observed: 'security: [{apiKey: []}] with an X-API-Key header scheme'
+    note: >-
+      The card says every call needs an API key, but the docs say /api/a2a is "currently free with no enforced
+      rate limits" and the live endpoint answered an anonymous JSON-RPC request. The card overstates the gate;
+      an agent reading only the card will believe it needs a key it cannot obtain from any documented signup.
+  - field: capabilities.signed_assessments
+    observed: vendor extension object inside capabilities
+    note: Not an A2A capability; it advertises the Ed25519 signed-assessment REST surface (real, verified live). A strict reader may reject unknown keys inside capabilities.
+  - field: task lifecycle
+    observed: tasks/get returns JSON-RPC error -32001 "PolicyCheck is stateless. Tasks complete immediately via message/send."
+    note: Tasks complete synchronously and cannot be re-fetched; capabilities.stateTransitionHistory is honestly false.
+  - field: skills[].securityRequirements / skills[].security
+    observed: absent
+    note: No per-skill security requirements; the top-level apiKey requirement is the only statement.
+surface_relationship:
+  note: >-
+    The A2A endpoint is the operational core of PolicyCheck's agent surface: the policycheck-mcp stdio package
+    is a thin bridge that turns each MCP tool call into an A2A message/send to this endpoint, and the A2A data
+    artifact carries the same fields as the REST POST /api/check. The published OpenAPI, by contrast, describes
+    only the legacy ChatGPT-plugin operations (/api/chatgpt/analyze, /api/chatgpt/analyze-url) and does not
+    include /api/a2a, /api/check or the signed-assessment endpoints.

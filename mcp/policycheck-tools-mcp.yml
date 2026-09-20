@@ -1,0 +1,117 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://registry.npmjs.org/policycheck-mcp
+docs: https://www.npmjs.com/package/policycheck-mcp
+summary: >-
+  PolicyCheck ships ONE MCP server: the policycheck-mcp npm package, a stdio server a human installs with
+  `npx -y policycheck-mcp`. It exposes three tools and implements each one as a JSON-RPC 2.0 message/send to
+  PolicyCheck's A2A endpoint — the package is a local bridge onto the hosted A2A surface, not a hosted MCP
+  endpoint. There is no remote MCP URL: /mcp, /api/mcp and /.well-known/mcp.json on policycheck.tools all
+  404, and neither the docs nor the agent card name one. The tool list and every inputSchema below were read
+  verbatim from server.js inside the published 1.0.2 tarball, so they are the real contract, not a guess.
+deployment:
+  mode: local-stdio
+  endpoint: null
+  install: npx -y policycheck-mcp
+  package: https://www.npmjs.com/package/policycheck-mcp
+  auth: none
+  verified: probed
+  note: >-
+    Verified by downloading policycheck-mcp-1.0.2.tgz from registry.npmjs.org and reading server.js: it
+    constructs StdioServerTransport and fetches POLICYCHECK_API_URL (default https://legaleasy.tools/api/a2a)
+    with no credential header. legaleasy.tools/api/a2a 308-redirects to https://policycheck.tools/api/a2a with
+    the POST preserved (verified live), so the default upstream still works via the redirect. auth is none
+    because the bridge sends no key and the upstream A2A endpoint answered an anonymous request.
+server:
+  name: policycheck-mcp
+  version: 1.0.2
+  server_declared_version: 1.0.0
+  transport: stdio
+  sdk: '@modelcontextprotocol/sdk ^1.12.1'
+  bin: policycheck-mcp -> server.js
+  mcp_registry_name: io.github.vibegpt/policycheck
+  license: MIT
+  author: vibegpt
+  repository: https://github.com/vibegpt/T-C-Widget/tree/main/policycheck-mcp
+  published: '2026-02-13'
+  upstream:
+    protocol: A2A (JSON-RPC 2.0 message/send)
+    default_url: https://legaleasy.tools/api/a2a
+    resolves_to: https://policycheck.tools/api/a2a
+    env_override: POLICYCHECK_API_URL
+  capabilities:
+    tools: true
+    resources: false
+    prompts: false
+client_config:
+  claude_desktop: '{"mcpServers":{"policycheck":{"command":"npx","args":["-y","policycheck-mcp"]}}}'
+  claude_code: claude mcp add policycheck -- npx -y policycheck-mcp
+  cursor: '{"mcpServers":{"policycheck":{"command":"npx","args":["-y","policycheck-mcp"]}}}'
+tools:
+- name: analyze_seller
+  description: >-
+    Comprehensive policy analysis for an online seller. Provide a URL to a specific policy page (return policy,
+    terms of service, etc.) and get a full risk assessment including risk level (low / medium / high /
+    critical), buyer protection score (0-100), key findings in plain English and a factual summary.
+  inputSchema:
+    type: object
+    properties:
+      url:
+        type: string
+        description: URL of the policy page to analyze (e.g. https://example.com/policies/refund-policy)
+    required: [url]
+  read_only: true
+  a2a_message: 'parts: [{kind: data, data: {url}, mimeType: application/json}]'
+  a2a_skill: comprehensive-policy-analysis
+  rest_equivalent: 'POST https://policycheck.tools/api/check {"url": ...} (documented; not in the published OpenAPI)'
+- name: quick_risk_check
+  description: >-
+    Quick risk check for an online seller. Provide the seller's base URL and PolicyCheck will automatically
+    locate common policy pages (returns, shipping, terms) and analyze them. Returns an overall risk score plus
+    per-policy breakdowns.
+  inputSchema:
+    type: object
+    properties:
+      seller_url:
+        type: string
+        description: Base URL of the seller (e.g. https://www.amazon.com)
+    required: [seller_url]
+  read_only: true
+  a2a_message: 'parts: [{kind: data, data: {seller_url, skill: quick-risk-check}, mimeType: application/json}]'
+  a2a_skill: quick-risk-check
+  rest_equivalent: 'POST https://policycheck.tools/api/check {"seller_url": ...} (documented; not in the published OpenAPI)'
+- name: check_policy_text
+  description: >-
+    Analyze raw policy text for risks. Paste the full text of a policy document (return policy, terms of
+    service, etc.) and get a risk assessment without needing a URL.
+  inputSchema:
+    type: object
+    properties:
+      text:
+        type: string
+        description: The raw policy text to analyze
+    required: [text]
+  read_only: true
+  a2a_message: 'parts: [{kind: text, text}]'
+  a2a_skill: comprehensive-policy-analysis
+  rest_equivalent: 'POST https://policycheck.tools/api/check {"policy_text": ...} (documented; not in the published OpenAPI)'
+output:
+  shape: >-
+    Text content carrying JSON: {success: true, ...artifact data} when the A2A task returns a data artifact,
+    otherwise the task status text; errors come back as {error, tool} with isError true.
+gaps:
+- No hosted MCP endpoint, so no agent can reach PolicyCheck over MCP without a human installing the package first.
+- The package has not been published since 2026-02-13 (1.0.2) and its default upstream still names the retired legaleasy.tools domain.
+- The MCP tools cover 2 of the 7 skills the A2A card advertises (comprehensive-policy-analysis, quick-risk-check); the focused return/shipping/warranty/terms skills and the signed-assessment skill have no MCP tool.
+- No remote /.well-known/oauth-protected-resource or authorization-server metadata exists (none is needed for a credential-less stdio bridge, but it also means no delegated-identity story).
+probes:
+- url: https://policycheck.tools/mcp
+  status: 404
+- url: https://policycheck.tools/api/mcp
+  status: 404
+- url: https://policycheck.tools/.well-known/mcp.json
+  status: 404
+- url: https://registry.npmjs.org/policycheck-mcp
+  status: 200
+  note: dist-tags.latest 1.0.2, time.modified 2026-02-13T15:53:35Z

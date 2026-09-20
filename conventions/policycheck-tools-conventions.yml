@@ -1,0 +1,132 @@
+generated: '2026-09-19'
+method: searched
+source: https://policycheck.tools/docs
+derived_from: openapi/policycheck-tools-openapi.yml
+docs:
+- https://policycheck.tools/docs#endpoints
+- https://policycheck.tools/docs#response-fields
+- https://policycheck.tools/docs#rate-limits
+- https://policycheck.tools/docs#notes
+- https://policycheck.tools/llms.txt
+base_url: https://policycheck.tools
+media_type: application/json
+auth:
+  style: 'Anonymous by default; X-API-Key header on the audit-log and compliance-report endpoints; x402 payment header on the paid endpoint'
+  detail: authentication/policycheck-tools-authentication.yml
+write_surface:
+  exists: false
+  note: >-
+    Every documented operation is a POST or GET that computes an analysis and returns it; none creates,
+    updates or deletes a resource the caller can later address. The only state written is PolicyCheck's own
+    audit trail ("every call is automatically logged"), which the caller can read via GET /api/v1/audit-log but
+    cannot modify or delete. For agent-readiness purposes this is a read/compute API with no write surface.
+idempotency:
+  coverage: na
+  supported: null
+  header: null
+  scope: []
+  retention: null
+  description: >-
+    Not applicable: there is no mutating operation to protect. Repeating an analysis request is safe by
+    construction — it returns the same deterministic score for the same input (the docs describe a fixed
+    scoring formula) and results are cached server-side by seller domain for 24 hours, so a repeated URL check
+    returns the cached result; supplying policy_text bypasses the cache. No Idempotency-Key header exists and
+    none is needed.
+dry_run:
+  mode: na
+  note: No write surface to rehearse. The free /api/check is itself the rehearsal for the paid /api/x402/analyze, which returns the same analysis fields inside a payment envelope.
+reversibility:
+  grade: na
+  write_surface: false
+  operations: []
+  note: >-
+    Nothing an agent does through this API can or needs to be reversed: no order, payment or record is created
+    on the caller's behalf. The x402 payment ($0.03 USDC) is an on-chain settlement and is not refundable through
+    any documented operation, which is a property of the payment rail rather than of a write surface.
+pagination:
+  style: time-window plus limit (documented for the audit log only)
+  request:
+    transport: query string on GET /api/v1/audit-log
+    fields:
+    - {name: from, type: integer, note: Unix seconds}
+    - {name: to, type: integer, note: Unix seconds}
+    - {name: domain, type: string, note: filter by seller domain}
+    - {name: event, type: string, note: filter by event type}
+    - {name: limit, type: integer}
+  response:
+    fields: [records, count]
+  note: >-
+    llms.txt calls the audit log "paginated" but documents only from/to/limit filters — no cursor, offset or
+    next link is published, so an agent pages by narrowing the time window. No other endpoint returns a list.
+filtering_and_sorting:
+  compliance_report:
+    field: period
+    values: [last-7-days, last-30-days, last-90-days, all-time]
+field_expansion:
+  supported: false
+sparse_fieldsets:
+  supported: false
+metadata:
+  supported: partial
+  note: >-
+    POST /api/v1/signed-assessment accepts optional agent_id and transaction_ref fields that are recorded in
+    the audit trail and returned in audit records — caller-supplied correlation metadata, scoped to that
+    endpoint.
+request_id_tracing:
+  header: null
+  note: >-
+    No request-id header is documented or returned; live responses carry only Vercel's x-vercel-id
+    (iad1::...) which identifies the edge request, plus x-matched-path. Signed assessments carry their own
+    assessment_id (UUID) which is the durable correlation key.
+versioning:
+  style: mixed path prefix
+  detail: >-
+    The signed-assessment, verify, audit-log and compliance-report endpoints live under /api/v1/; the primary
+    /api/check, /api/a2a, /api/x402/analyze and /api/clause-registry are unversioned; the OpenAPI operations are
+    under /api/chatgpt/. The clause registry is separately versioned (live "version": "2.0.0"; the docs page
+    still says 1.0.1) with a stability promise that clause IDs do not change within a major version. See
+    lifecycle/policycheck-tools-lifecycle.yml.
+input_aliases:
+  note: >-
+    Body field aliases are accepted everywhere: url == seller_url (== sellerUrl on the x402 endpoint) and
+    policy_text == text. Providing policy_text bypasses the server-side fetch and the cache and yields the
+    highest confidence (analysis_status "text_provided").
+response_envelope:
+  success: bare JSON object (no data wrapper) on REST; JSON-RPC 2.0 result with a completed task carrying a text part and a data artifact on /api/a2a; {payment, analysis} on the x402 endpoint
+  provenance_fields:
+    analysis_status: [complete, partial, no_content, text_provided]
+    confidence: [high, medium, low, none]
+    fetch_method: [server_fetch, client_provided, text_input]
+    analysis_method: [regex_plus_llm, regex_only, none]
+  rule: 'Check analysis_status before trusting scores: when it is no_content the risk_score, buyer_protection_rating and buyer_protection_score are null and must not be treated as a positive signal.'
+error_envelope:
+  shape: '{"error": "<message>"} on REST 4xx/5xx; JSON-RPC 2.0 error {code, message} on /api/a2a; empty {} body plus a PAYMENT-REQUIRED header on 402'
+  rfc9457: false
+  detail: errors/policycheck-tools-problem-types.yml
+rate_limit_signaling:
+  headers: []
+  exhaustion_status: undocumented
+  note: >-
+    No RateLimit-*, X-RateLimit-* or Retry-After headers are documented or were observed. The docs say the
+    free endpoints have "no enforced rate limits"; the agent card says "Free tier: 100 requests/minute". See
+    rate-limits/policycheck-tools-rate-limits.yml.
+caching:
+  server_side: 'Results cached by seller domain for 24 hours; clause registry cached 24 hours; JWKS cached 1 hour'
+  bypass: 'Provide policy_text instead of a URL'
+  http_cache_control_observed: 'public, max-age=0, must-revalidate'
+cors:
+  enabled: true
+  observed: 'access-control-allow-origin: *; access-control-allow-methods: POST, OPTIONS; access-control-allow-headers: Content-Type (OPTIONS and POST on /api/check)'
+  note: Browser-based agents can call /api/check directly; the allowed headers list does not include X-API-Key, so the keyed endpoints are not usable cross-origin from a browser.
+signed_assessments:
+  algorithm: Ed25519
+  canonicalization: canonical JSON (sorted keys, no whitespace)
+  expiry: 5 minutes (expires_at)
+  verification: 'POST /api/v1/verify (stateless) or independently against /.well-known/jwks.json kid policycheck-1'
+  fields_returned: [signed_assessment, signature, signed_payload_hash, verification_url, jwks_url]
+cross_links:
+  errors: errors/policycheck-tools-problem-types.yml
+  lifecycle: lifecycle/policycheck-tools-lifecycle.yml
+  authentication: authentication/policycheck-tools-authentication.yml
+  rate_limits: rate-limits/policycheck-tools-rate-limits.yml
+  x402: x402/policycheck-tools-x402.yml

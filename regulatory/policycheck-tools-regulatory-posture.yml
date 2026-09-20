@@ -1,0 +1,77 @@
+generated: '2026-09-19'
+method: searched
+probe: true
+source: https://policycheck.tools/legal
+caveat: >-
+  The only legal page PolicyCheck publishes (https://policycheck.tools/legal, linked as legal_info_url from
+  ai-plugin.json; /terms and /privacy 404) is still branded "LegalEasy" and written for the LegalEasy Shopify
+  app ("Store Information: Shopify store domain", "billed monthly through Shopify"). Both documents are dated
+  "Last Updated: March 7, 2026". The signals below are recorded as published; whether the page's scope covers the
+  PolicyCheck API surface is a question for the provider.
+signals:
+  data_subject_request:
+    url: https://policycheck.tools/legal
+    section: '5. GDPR and CCPA Compliance'
+    channel: privacy@policycheck.tools
+    rights_named: [access (request a copy of your data), deletion, opt-out of analytics tracking, data portability]
+    stated_sla: null
+    evidence:
+    - source: https://policycheck.tools/legal
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "If you are in the EU or California, you have the right to: Request a copy of your data; Request deletion
+        of your data; Opt-out of analytics tracking; Request data portability. Contact us at
+        privacy@policycheck.tools to exercise these rights."
+    note: >-
+      A documented request channel and named rights, plus a retention statement ("Uninstalled Merchants: Data
+      deleted within 30 days of uninstallation; Analytics: Anonymized usage data retained for 12 months"). No
+      response period is stated, no intake form or endpoint exists (/privacy/requests 404).
+  subprocessors:
+    url: https://policycheck.tools/legal
+    section: '3. Data Storage and Security / 4. Data Sharing'
+    dated: '2026-03-07'
+    entries:
+    - {vendor: OpenAI, purpose: 'AI analysis via the OpenAI API (text only, no PII)'}
+    - {vendor: Vercel, purpose: hosting}
+    - {vendor: Supabase, purpose: hosting / data storage}
+    evidence:
+    - source: https://policycheck.tools/legal
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "We do not sell or share your data with third parties, except: Service Providers: OpenAI API for AI
+        analysis (text only, no PII)" and "Hosted on SOC 2 Type II certified infrastructure (Vercel/Supabase)".
+    note: >-
+      Named processors inside the privacy policy rather than a standalone dated subprocessor table
+      (/legal/subprocessors 404). Recorded because the vendors and purposes are stated, with the caveat that
+      it is a prose list, not a maintained register.
+  ai_transparency:
+    url: https://policycheck.tools/legal
+    section: 'Terms of Service — 2. Service Description, 3. Not Legal Advice, 4. Accuracy Disclaimer'
+    evidence:
+    - source: https://policycheck.tools/legal
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "LegalEasy is an AI-powered service that analyzes legal documents ... LegalEasy uses AI and automated
+        analysis which may contain errors. We do not guarantee the accuracy, completeness, or reliability of
+        our summaries."
+    - source: https://policycheck.tools/docs#response-fields
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: 'Every response carries analysis_method ("regex_plus_llm" | "regex_only" | "none") and confidence ("high" | "medium" | "low" | "none"); the docs section "Scoring System" states "the LLM identifies clauses, but the score comes from a fixed formula".'
+    note: >-
+      A published statement that the output is AI-generated and may be wrong, reinforced by a per-response
+      machine-readable provenance field naming whether an LLM was involved. Not a dedicated AI transparency page
+      (/ai and /ai/transparency were not published), and no model card or training-data summary exists.
+probed_absent:
+- {url: https://policycheck.tools/accessibility, status: 404}
+- {url: https://policycheck.tools/legal/subprocessors, status: 404}
+- {url: https://policycheck.tools/legal/dpa, status: 404}
+- {url: https://policycheck.tools/terms, status: 404}
+- {url: https://policycheck.tools/privacy, status: 404}
+- {url: https://policycheck.tools/.well-known/security.txt, status: 404}
+- {url: https://policycheck.tools/status, status: 404}
+- {url: https://policycheck.tools/changelog, status: 404}
+not_found: [sbom, support_lifetime, accessibility_conformance, training_data_summary, global_privacy_control, data_residency, incident_notification, age_assurance, notice_and_action, transparency_report, exit_assistance]

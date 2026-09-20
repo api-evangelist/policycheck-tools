@@ -1,0 +1,12 @@
+generated: '2026-09-19'
+method: generated
+source: >-
+  Packaged Agent Skill generated from PolicyCheck's published OpenAPI (openapi/policycheck-tools-openapi.yml,
+  2 operations). Every step is grounded in an operationId verified verbatim in the spec; cross-cutting rules
+  cite ../authentication/, ../errors/, ../conventions/ and ../rate-limits/. PolicyCheck publishes no skills or
+  AGENTS.md of its own (searched: site, llms.txt, GitHub repo, npm package).
+skills:
+- file: policycheck-tools-analyze-a-legal-document.md
+  name: Analyze a seller's legal document for buyer risk
+  api: openapi/policycheck-tools-openapi.yml
+  operations: [analyzeLegalDocument, analyzeLegalDocumentFromURL]

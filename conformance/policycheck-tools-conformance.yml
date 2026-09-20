@@ -1,0 +1,116 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  https://policycheck.tools/docs cross-checked against openapi/policycheck-tools-openapi.yml, the A2A agent
+  card, the policycheck-mcp 1.0.2 package source and live probes of policycheck.tools on 2026-09-19.
+standards:
+- id: openapi-3.0
+  name: OpenAPI 3.0
+  conforms: true
+  evidence: >-
+    openapi/policycheck-tools-openapi.yml declares "openapi": "3.0.0" with 2 paths, 2 operations, unique
+    operationIds, summaries, descriptions and 200/400/500 responses; served from
+    https://policycheck.tools/openapi.json (HTTP 200, application/json) and linked from llms.txt and
+    ai-plugin.json.
+  caveat: No securitySchemes, no tags, no components, no examples; covers 2 of the 10 documented endpoints.
+- id: a2a
+  name: A2A Agent-to-Agent protocol
+  conforms: true
+  evidence: >-
+    Agent card at https://policycheck.tools/.well-known/agent.json (legacy path, 200) grades conformant on the
+    A2A 1.0.0 hard checks with protocolVersion 0.2.0 and 7 skills; https://policycheck.tools/api/a2a answered a
+    live JSON-RPC 2.0 request. See a2a/policycheck-tools-a2a.yml.
+  caveat: Legacy discovery path, 0.2-era card shape, tasks/get unsupported (stateless message/send only).
+- id: json-rpc-2.0
+  name: JSON-RPC 2.0
+  conforms: true
+  evidence: 'POST /api/a2a returned {"jsonrpc":"2.0","id":1,"error":{"code":-32001,"message":"..."}} — a well-formed JSON-RPC 2.0 error object with an implementation-defined code in the reserved server range.'
+- id: mcp
+  name: Model Context Protocol
+  conforms: true
+  evidence: >-
+    policycheck-mcp 1.0.2 on npm builds on @modelcontextprotocol/sdk ^1.12.1, declares capabilities.tools and
+    serves ListTools/CallTool over stdio; three tools with JSON Schema inputSchema read from server.js.
+  caveat: stdio only; no hosted endpoint, so no Streamable HTTP, no OAuth, no RFC 9728 metadata.
+- id: x402
+  name: x402 payment protocol (v2)
+  conforms: true
+  evidence: >-
+    POST https://policycheck.tools/api/x402/analyze returned HTTP 402 with a PAYMENT-REQUIRED header decoding to
+    an x402Version 2 envelope (scheme exact, network eip155:8453, USDC, payTo, maxTimeoutSeconds 300) and a
+    bazaar discovery extension. See x402/policycheck-tools-x402.yml.
+- id: jwks-rfc7517
+  name: RFC 7517 JSON Web Key Set with RFC 8037 OKP/Ed25519 key
+  conforms: true
+  evidence: >-
+    https://policycheck.tools/.well-known/jwks.json (200) returns {"keys":[{"kty":"OKP","crv":"Ed25519","use":"sig","kid":"policycheck-1","x":...}]};
+    the docs specify canonical-JSON Ed25519 signatures over the signed-assessment envelope verified by POST
+    /api/v1/verify or independently against this key.
+- id: openai-plugin-manifest
+  name: OpenAI ChatGPT plugin manifest (ai-plugin.json schema_version v1)
+  conforms: true
+  evidence: >-
+    https://policycheck.tools/.well-known/ai-plugin.json (200) is a schema_version v1 manifest with auth type
+    none and api.type openapi pointing at https://policycheck.tools/openapi.json.
+  caveat: Legacy format (the plugin program is retired) and still branded LegalEasy.
+- id: cors
+  name: CORS (Fetch standard)
+  conforms: true
+  evidence: 'OPTIONS and POST on /api/check return access-control-allow-origin: *, allow-methods POST, OPTIONS, allow-headers Content-Type — the docs state /api/check "supports CORS for browser-based clients".'
+- id: oauth2
+  name: OAuth 2.0
+  conforms: false
+  evidence: No OAuth flows anywhere; /.well-known/oauth-authorization-server 404.
+- id: oidc
+  name: OpenID Connect
+  conforms: false
+  evidence: /.well-known/openid-configuration 404.
+- id: rfc9728
+  name: RFC 9728 OAuth 2.0 Protected Resource Metadata
+  conforms: false
+  evidence: /.well-known/oauth-protected-resource 404; the 401 on /api/v1/audit-log carries no WWW-Authenticate header.
+- id: rfc9457
+  name: RFC 9457 Problem Details
+  conforms: false
+  evidence: 'Errors are {"error": string} with application/json; no application/problem+json anywhere in the spec or live responses.'
+- id: rfc9116
+  name: RFC 9116 security.txt
+  conforms: false
+  evidence: /.well-known/security.txt and /security.txt both 404.
+- id: rfc9727
+  name: RFC 9727 API Catalog
+  conforms: false
+  evidence: /.well-known/api-catalog and /.well-known/api-catalog.json 404.
+- id: apis-json
+  name: APIs.json
+  conforms: false
+  evidence: /apis.json, /apis.yml and /.well-known/apis.json 404.
+- id: llms-txt
+  name: llms.txt
+  conforms: true
+  evidence: https://policycheck.tools/llms.txt (200, text/plain) — saved verbatim to llms/policycheck-tools-llms.txt.
+- id: rfc8594
+  name: RFC 8594 Sunset header
+  conforms: false
+  evidence: No Sunset or Deprecation headers documented or declared.
+- id: idempotency-key
+  name: IETF Idempotency-Key header
+  conforms: false
+  evidence: Not documented; not applicable — the API has no write surface (conventions/policycheck-tools-conventions.yml).
+- id: agentic-commerce-well-known
+  name: UCP / ACP agentic-commerce discovery document
+  conforms: false
+  evidence: /.well-known/ucp.json and /.well-known/acp.json both 404. PolicyCheck is a policy-intelligence provider consumed by shopping agents, not a storefront, so no such document is expected.
+domain_standard:
+  applicable: false
+  note: >-
+    No sector standard governs pre-purchase seller-policy risk intelligence; the relevant machine-readable
+    contracts here are the horizontal agent protocols (A2A, MCP, x402) recorded above. Nothing is asserted to
+    fill the slot.
+compliance_programs:
+  published: false
+  note: >-
+    The /legal page states data is "Hosted on SOC 2 Type II certified infrastructure (Vercel/Supabase)" and
+    "encrypted at rest (AES-256) / in transit (TLS 1.3)". That is the hosting vendors' attestation, not a
+    PolicyCheck certification, and no trust center, report or audit letter is published, so no Compliance
+    pointer is emitted. probe-security-programs.py found vdp=none trust=none.
