@@ -11,6 +11,22 @@ description: >-
   x402 pay-per-analysis endpoint settled in USDC on Base, a versioned clause registry, and a keyed audit log and
   compliance report. The published OpenAPI covers only the two legacy ChatGPT-plugin operations.
 url: https://raw.githubusercontent.com/api-evangelist/policycheck-tools/refs/heads/main/apis.yml
+deliveryModel:
+  model: saas
+  license_evidence:
+    not_product:
+    - vibegpt/t-c-widget
+  open_source: unknown
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: low
+  source:
+  - openapi
+  - pricing
+  - repository-not-product
+  generated: '2026-09-25'
+  method: derived
 image: https://policycheck.tools/logo.png
 x-type: company
 x-source: harvest:a2a-registry
@@ -47,64 +63,16 @@ tags_raw:
 - Legal
 - Returns
 apis:
-- aid: policycheck-tools:policycheck-api
-  name: PolicyCheck API
-  description: >-
-    Anonymous JSON REST API on policycheck.tools. The provider-published OpenAPI (verbatim in openapi/) describes
-    two live legacy ChatGPT-plugin operations, analyzeLegalDocument (POST /api/chatgpt/analyze, raw text) and
-    analyzeLegalDocumentFromURL (POST /api/chatgpt/analyze-url). The documented primary surface — POST /api/check
-    (seller URL or policy text -> risk score, flags, clauses, analysis_status, confidence), GET
-    /api/clause-registry, POST /api/v1/signed-assessment and /api/v1/verify with /.well-known/jwks.json, and the
-    X-API-Key-gated GET /api/v1/audit-log and /api/v1/compliance-report — is documented in prose only and is not
-    in the contract.
-  humanURL: https://policycheck.tools/docs
-  baseURL: https://policycheck.tools
-  tags:
-  - Policy Analysis
-  - Consumer Protection
-  - Risk Assessment
-  - Legal
-  properties:
-  - type: OpenAPI
-    url: openapi/policycheck-tools-openapi.yml
-  - type: OpenAPI
-    name: OpenAPI (provider-hosted)
-    url: https://policycheck.tools/openapi.json
-  - type: Documentation
-    url: https://policycheck.tools/docs
-  - type: APIReference
-    url: https://policycheck.tools/docs#endpoints
-  - type: GettingStarted
-    url: https://policycheck.tools/docs#quick-start
-  - type: Authentication
-    url: authentication/policycheck-tools-authentication.yml
-  - type: Conventions
-    url: conventions/policycheck-tools-conventions.yml
-  - type: ErrorCatalog
-    url: errors/policycheck-tools-problem-types.yml
-  - type: DataModel
-    url: data-model/policycheck-tools-data-model.yml
-  - type: Overlay
-    url: overlays/policycheck-tools-openapi-overlay.yaml
-  - type: RateLimits
-    url: rate-limits/policycheck-tools-rate-limits.yml
-  - type: Plans
-    url: plans/policycheck-tools-plans-pricing.yml
-  - type: Lifecycle
-    url: lifecycle/policycheck-tools-lifecycle.yml
-  - type: AgentSkill
-    url: skills/policycheck-tools-analyze-a-legal-document.md
-  - type: AgenticAccess
-    url: agentic-access/policycheck-tools-agentic-access.yml
 - aid: policycheck-tools:policycheck-a2a-agent
   name: PolicyCheck A2A Agent
   description: >-
-    JSON-RPC 2.0 Agent-to-Agent endpoint at https://policycheck.tools/api/a2a, discovered through an A2A agent card
-    served at the legacy /.well-known/agent.json path (protocolVersion 0.2.0, seven skills: comprehensive policy
-    analysis, quick risk check, return / shipping / warranty / terms analysis and signed seller assessment). The
-    endpoint is stateless — message/send only, tasks/get returns -32001 — answered an anonymous request live on
-    2026-09-19, and returns a completed task carrying the same structured fields as POST /api/check. The card
-    grades conformant on the A2A 1.0.0 hard checks; its documentationUrl and pricing URLs are dead.
+    JSON-RPC 2.0 Agent-to-Agent endpoint at https://policycheck.tools/api/a2a, discovered through an A2A
+    agent card served at the legacy /.well-known/agent.json path (protocolVersion 0.2.0, seven skills:
+    comprehensive policy analysis, quick risk check, return / shipping / warranty / terms analysis and
+    signed seller assessment). The endpoint is stateless — message/send only, tasks/get returns -32001
+    — answered an anonymous request live on 2026-09-19, and returns a completed task carrying the same
+    structured fields as POST /api/check. The card grades conformant on the A2A 1.0.0 hard checks; its
+    documentationUrl and pricing URLs are dead.
   humanURL: https://policycheck.tools/docs#endpoint-a2a
   baseURL: https://policycheck.tools/api/a2a
   tags:
@@ -122,12 +90,12 @@ apis:
 - aid: policycheck-tools:policycheck-mcp-server
   name: PolicyCheck MCP Server
   description: >-
-    The policycheck-mcp npm package (1.0.2, published 2026-02-13, MIT) is a stdio Model Context Protocol server
-    installed with `npx -y policycheck-mcp`. It exposes three tools — analyze_seller (policy page URL),
-    quick_risk_check (seller homepage URL) and check_policy_text (raw text) — each implemented as an A2A
-    message/send to https://policycheck.tools/api/a2a (the package still defaults to the retired legaleasy.tools
-    URL, which 308-redirects). There is no hosted MCP endpoint. Tool names and input schemas were read verbatim
-    from the published package source.
+    The policycheck-mcp npm package (1.0.2, published 2026-02-13, MIT) is a stdio Model Context Protocol
+    server installed with `npx -y policycheck-mcp`. It exposes three tools — analyze_seller (policy page
+    URL), quick_risk_check (seller homepage URL) and check_policy_text (raw text) — each implemented as
+    an A2A message/send to https://policycheck.tools/api/a2a (the package still defaults to the retired
+    legaleasy.tools URL, which 308-redirects). There is no hosted MCP endpoint. Tool names and input schemas
+    were read verbatim from the published package source.
   humanURL: https://www.npmjs.com/package/policycheck-mcp
   baseURL: https://policycheck.tools/api/a2a
   tags:
@@ -147,14 +115,13 @@ apis:
 - aid: policycheck-tools:policycheck-x402-analysis-api
   name: PolicyCheck x402 Analysis API
   description: >-
-    Pay-per-request analysis over the x402 protocol: POST https://policycheck.tools/api/x402/analyze answers HTTP
-    402 with a PAYMENT-REQUIRED header carrying an x402Version 2 envelope — $0.03 (30000 atomic USDC) per
-    analysis on Base mainnet (eip155:8453), scheme exact, 300 s timeout, plus a bazaar discovery extension with a
-    JSON Schema for the request body (url, sellerUrl, text) and an example response. After payment the response
-    wraps the /api/check analysis fields in a {payment, analysis} envelope with the on-chain receipt. Probed live
-    on 2026-09-19; no payment was made.
+    Pay-per-request analysis over the x402 protocol: POST https://policycheck.tools/api/x402/analyze answers
+    HTTP 402 with a PAYMENT-REQUIRED header carrying an x402Version 2 envelope — $0.03 (30000 atomic USDC)
+    per analysis on Base mainnet (eip155:8453), scheme exact, 300 s timeout, plus a bazaar discovery extension
+    with a JSON Schema for the request body (url, sellerUrl, text) and an example response. After payment
+    the response wraps the /api/check analysis fields in a {payment, analysis} envelope with the on-chain
+    receipt. Probed live on 2026-09-19; no payment was made.
   humanURL: https://policycheck.tools/docs#endpoint-x402
-  baseURL: https://policycheck.tools
   tags:
   - x402
   - Micropayments
@@ -164,12 +131,46 @@ apis:
     url: x402/policycheck-tools-x402.yml
   - type: Documentation
     url: https://policycheck.tools/docs#endpoint-x402
+- aid: policycheck-tools:policycheck-tools-chatgpt-api
+  name: PolicyCheck Chatgpt API
+  description: The Chatgpt API from PolicyCheck — 2 operation(s) for chatgpt.
+  humanURL: https://policycheck.tools/docs
+  baseURL: https://policycheck.tools/api/a2a
+  tags:
+  - Chatgpt
+  properties:
+  - type: OpenAPI
+    url: openapi/policycheck-tools-chatgpt-api-openapi.yml
+  - type: Documentation
+    url: https://policycheck.tools/docs
+  - type: APIReference
+    url: https://policycheck.tools/docs#endpoints
+  - type: GettingStarted
+    url: https://policycheck.tools/docs#quick-start
+  - type: Authentication
+    url: authentication/policycheck-tools-authentication.yml
+  - type: Conventions
+    url: conventions/policycheck-tools-conventions.yml
+  - type: ErrorCatalog
+    url: errors/policycheck-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/policycheck-tools-data-model.yml
+  - type: RateLimits
+    url: rate-limits/policycheck-tools-rate-limits.yml
+  - type: Plans
+    url: plans/policycheck-tools-plans-pricing.yml
+  - type: Lifecycle
+    url: lifecycle/policycheck-tools-lifecycle.yml
+  - type: AgenticAccess
+    url: agentic-access/policycheck-tools-agentic-access.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: AgentSkill
+  url: skills/policycheck-tools-analyze-a-legal-document.md
 - type: Website
   url: https://policycheck.tools/
 - type: Documentation
@@ -245,3 +246,10 @@ x-enrichment:
   status: enriched
   artifacts_added: 27
   pass: local-v3
+x-a2a:
+  verified: true
+  probed: '2026-09-26'
+  url: "https://policycheck.tools/.well-known/agent.json"
+  grade: "conformant"
+  protocol_version: "0.3.0"
+  control: 404

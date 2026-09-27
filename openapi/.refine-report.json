@@ -1,0 +1,29 @@
+{
+  "provider": "policycheck-tools",
+  "sources": [
+    "_original/policycheck-tools-openapi.json",
+    "policycheck-tools-openapi.yml"
+  ],
+  "outputs": [
+    "policycheck-tools-chatgpt-api-openapi.yml"
+  ],
+  "archived": [
+    "archived openapi/policycheck-tools-openapi.yml"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "policycheck-tools-openapi.json: upgraded openapi 3.0.0 -> OpenAPI 3.2.0",
+    "policycheck-tools-openapi.json: tagged paths POST /api/chatgpt/analyze -> Chatgpt",
+    "policycheck-tools-openapi.json: tagged paths POST /api/chatgpt/analyze-url -> Chatgpt",
+    "policycheck-tools-openapi.json: declared missing tag: Chatgpt",
+    "policycheck-tools-openapi.yml: upgraded openapi 3.0.0 -> OpenAPI 3.2.0",
+    "policycheck-tools-openapi.yml: tagged paths POST /api/chatgpt/analyze -> Chatgpt",
+    "policycheck-tools-openapi.yml: tagged paths POST /api/chatgpt/analyze-url -> Chatgpt",
+    "policycheck-tools-openapi.yml: declared missing tag: Chatgpt",
+    "tag 'Chatgpt' spans 2 source specs (policycheck-tools-openapi.json, policycheck-tools-openapi.yml): per-path servers applied",
+    "apis.yml register: written (+1 apis, 4 total)"
+  ],
+  "skipped": []
+}
