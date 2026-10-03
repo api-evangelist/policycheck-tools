@@ -1,8 +1,8 @@
 openapi: 3.2.0
 info:
-  title: Policycheck Tools Chatgpt API
+  title: LegalEasy Chatgpt API
+  description: API for analyzing legal documents and generating plain-English summaries with risk assessments
   version: 1.0.0
-  description: 'Operations tagged Chatgpt across 2 of this provider''s published API definitions: policycheck-tools-openapi.json, policycheck-tools-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://policycheck.tools
 tags:
@@ -126,8 +126,6 @@ paths:
                     type: string
       tags:
       - Chatgpt
-    servers:
-    - url: https://policycheck.tools
   /api/chatgpt/analyze-url:
     post:
       operationId: analyzeLegalDocumentFromURL
@@ -203,8 +201,3 @@ paths:
                     type: string
       tags:
       - Chatgpt
-    servers:
-    - url: https://policycheck.tools
-x-refined-from:
-- policycheck-tools-openapi.json
-- policycheck-tools-openapi.yml
