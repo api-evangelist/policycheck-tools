@@ -137,6 +137,8 @@ apis:
   humanURL: https://policycheck.tools/docs
   baseURL: https://policycheck.tools/api/a2a
   tags:
+  - ChatGPT
+  tags_raw:
   - Chatgpt
   properties:
   - type: OpenAPI
