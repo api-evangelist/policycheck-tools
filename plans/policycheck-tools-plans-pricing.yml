@@ -36,3 +36,24 @@ notes:
 - The agent card advertises pricing.model "freemium" with details at https://policycheck.tools/pricing, which returns 404; the docs section above is the only published price list.
 - The /legal page (still branded LegalEasy) mentions "Paid plans are billed monthly through Shopify" for the Shopify app without stating any price; not counted as an API plan.
 - No enterprise tier, no quota table, no overage schedule is published.
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - subscription
+  units: []
+  plans:
+  - name: Free (beta)
+    access: other
+    model: free
+    model_how: derived
+    units: []
+    periods: []
+  - name: x402 pay-per-analysis
+    access: other
+    model: subscription
+    model_how: derived
+    units:
+    - other
+    periods: []
